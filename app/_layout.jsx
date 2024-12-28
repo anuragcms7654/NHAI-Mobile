@@ -7,17 +7,16 @@ import { Provider } from "react-redux";
 export default function RootLayout({ children }) {
   return (
     <Provider store={_store}>
-
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={true}
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="transparent"
+          translucent={true}
         />
-      <Header/>
-      <Stack screenOptions={{ headerShown: false }}/>
-    </SafeAreaView>
-        </Provider>
+        <Header />
+        <Stack screenOptions={{ headerShown: false }} />
+      </SafeAreaView>
+    </Provider>
   );
 }
 
