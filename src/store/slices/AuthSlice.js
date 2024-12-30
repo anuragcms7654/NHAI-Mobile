@@ -1,7 +1,8 @@
+import { loginInitialStates } from '@/src/constants/Auth/login';
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  mobileNumber: '',
+  ...loginInitialStates
 };
 
 export const AuthSlice = createSlice({

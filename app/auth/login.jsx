@@ -37,7 +37,6 @@ const login = () => {
                 {/* Card Content */}
                 <Card.Content style={styles.cardContent}>
                     <Text variant="titleLarge" style={styles.title}>Login</Text>
-                    <Text variant="titleLarge" style={styles.title}>{mobileNumber}</Text>
                     {/* Text Input */}
                     <TextInput
                         label="Registered Mobile Number"
