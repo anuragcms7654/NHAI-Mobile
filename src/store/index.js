@@ -1,20 +1,19 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import EnquirySlice from './slices/EnquirySlice';
 import AuthSlice from './slices/AuthSlice';
 import { persistStore, persistReducer } from 'redux-persist';
+import { api as baseApi } from './apiQuery/api'
 // import storage from 'redux-persist/lib/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {encryptTransform} from '../config/encryption'
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  transforms: [encryptTransform]
+  // transforms: [encryptTransform]
 };
 
 const appReducer = combineReducers({
-  enquiry: EnquirySlice,
   auth: AuthSlice,
+  [baseApi.reducerPath]: baseApi.reducer
 });
 
 const rootReducer = (state, action) => {
@@ -28,7 +27,7 @@ const _store = configureStore({
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware({
       serializableCheck: false
-    });
+    }).concat(baseApi.middleware);
   }
 });
 

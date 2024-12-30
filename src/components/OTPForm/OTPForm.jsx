@@ -6,7 +6,7 @@ import { validationSchema } from './OTPschema';
 import useCountdown from '../../hooks/useCountdown';
 import Loader from '../Loader/Loader';
 
-const OTPCard = ({ refreshTrigger }) => {
+export const OTPForm = ({ refreshTrigger }) => {
   const [otp, setOtp] = useState(Array(5).fill(''));
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -135,6 +135,8 @@ const OTPCard = ({ refreshTrigger }) => {
   );
 };
 
+export default OTPForm;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -215,5 +217,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
-export default OTPCard;
