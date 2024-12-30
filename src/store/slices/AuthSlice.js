@@ -2,7 +2,7 @@ import { loginInitialStates } from '@/src/constants/Auth/login';
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  ...loginInitialStates
+  mobileNumber: ""
 };
 
 export const AuthSlice = createSlice({

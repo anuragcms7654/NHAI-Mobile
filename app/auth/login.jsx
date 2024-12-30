@@ -1,5 +1,5 @@
 import { Link } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image } from 'react-native';
 import { Card, Text, Button, TextInput, Divider } from 'react-native-paper';
 import DigitalIndia from "../../src/assets/images/DigitalIndia.png"
@@ -8,11 +8,13 @@ import { loginSchema } from '../../src/constants/Auth/login'
 import { useDispatch, useSelector } from 'react-redux';
 import { updateMobileNumber } from '@/src/store/slices/AuthSlice';
 import { useRouter } from 'expo-router';
+import { useLoginMutation } from '../../src/store/apiQuery/authApi'
 
 const login = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const {mobileNumber} = useSelector(state => state.auth);
+  const [login, { isLoading, isError, error }] = useLoginMutation();
   
     const [inputValue, setInputValue] = useState('');
 
@@ -20,6 +22,19 @@ const login = () => {
         console.log('Input Value:', inputValue);
         router.push('/auth/signup');
     };
+
+    useEffect(() => {
+        const handleLogin = async () => {
+            try {
+              const result = await login({ mobile: 9898989898, password: "12345" }).unwrap();
+              console.log('Login Successful:', result);
+            } catch (err) {
+              console.error('Login Failed:', err);
+            }
+          };
+        handleLogin();
+    }, [])
+    
 
     const formik = useFormik({
         initialValues: {
