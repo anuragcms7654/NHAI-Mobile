@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions, Keyboard } from 'react-native';
 import { Text, Button, TextInput, Divider } from 'react-native-paper';
 import { Link } from '@react-navigation/native';
 import { useFormik } from 'formik';
 import { validationSchema } from './NumberSchema';
 import { useRouter } from 'expo-router';
+import { useDispatch } from 'react-redux';
+import { updateMobileNumber } from '@/src/store/slices/AuthSlice';
+import { useLoginMutation } from '../../store/apiQuery/authApi';
 
-const NumberForm = ({getMobileData}) => {
-      const router = useRouter();
-    const [inputValue, setInputValue] = useState('');
+const NumberForm = ({ getMobileData, mobileNumber }) => {
+    const router = useRouter();
+    const dispatch = useDispatch();
+    const [inputValue, setInputValue] = useState(mobileNumber || '');  
+    const [apiError, setApiError] = useState(null);  
+    const [login, { isLoading, isError, error, data }] = useLoginMutation(); 
+    useEffect(() => {
+        setInputValue(mobileNumber || '');
+    }, [mobileNumber]);
 
     const handleButtonPress = () => {
         console.log('Input Value:', inputValue);
@@ -17,50 +26,58 @@ const NumberForm = ({getMobileData}) => {
 
     const NumberFormik = useFormik({
         initialValues: {
-            mobile: ''
+            mobile: mobileNumber || '',
         },
         validationSchema: validationSchema,
-        onSubmit: (values) => {
-            // console.log(values)
-            getMobileData(values?.mobile)
+        onSubmit: async (values) => {
+            try {
+                await getMobileData(values?.mobile);
+            } catch (error) {
+                console.error('Login Failed------:', error);
+                setApiError("Failed to login. Please check your mobile number or try again."); 
+            }
         }
     });
 
-
-    const isNumeric = /^[0-9]$/; // Regex to match only numeric characters (0-9)
-    const handleKeyPress = (e) => {
-        const char = e.nativeEvent.key; // Get the key pressed
-    
-        // Prevent non-numeric characters and special characters
-        if (!isNumeric.test(char) && char !== 'Backspace') {
-          e.preventDefault(); // Block the input
+    const handleChangeText = (text) => {
+        const numericText = text.replace(/[^0-9]/g, '');
+        if (numericText.length <= 10) {
+            NumberFormik.setFieldValue('mobile', numericText);
         }
-      };
+    };
+
+    const handleBlur = () => {
+        Keyboard.dismiss();  
+        NumberFormik.handleBlur('mobile'); 
+    };
+
     return (
         <View>
-            <Text variant="titleLarge" style={styles.Logintitle}>Login</Text>
+            <Text style={styles.headerText}>Login</Text>
             <TextInput
                 label="Registered Mobile Number"
                 value={NumberFormik.values.mobile}
-                onChangeText={ (text) => {
-                    const numericText = text.replace(/[^0-9]/g, ''); 
-                    NumberFormik.setFieldValue('mobile', text);
-                }}
-                onBlur={NumberFormik.handleBlur('mobile')}
+                onChangeText={handleChangeText}  
+                onBlur={handleBlur}  
                 mode="outlined"
-                onKeyPress={handleKeyPress}
                 keyboardType="numeric"
                 style={styles.MobileInput}
                 theme={{
                     colors: {
-                        primary: NumberFormik.touched.mobile && NumberFormik.errors.mobile ? '#941D10' : '#104685', // Color for label and outline on focus
-                        outline: NumberFormik.touched.mobile && NumberFormik.errors.mobile ? '#941D10' : '#104685', // Outline color
+                        primary: NumberFormik.touched.mobile && NumberFormik.errors.mobile ? '#941D10' : '#104685',
+                        outline: NumberFormik.touched.mobile && NumberFormik.errors.mobile ? '#941D10' : '#104685',
                     },
                 }}
             />
             {NumberFormik.touched.mobile && NumberFormik.errors.mobile && (
                 <Text style={styles.errorText}>{NumberFormik.errors.mobile}</Text>
             )}
+
+            {apiError && <Text style={styles.errorText}>{apiError}</Text>}
+            {isError && error && (
+                <Text style={styles.errorText}>{error.message || 'Something went wrong, please try again.'}</Text>
+            )}
+
             <Button mode="contained" onPress={() => NumberFormik.handleSubmit()} style={styles.Loginbutton}>
                 Login Using OTP
             </Button>
@@ -93,22 +110,9 @@ const NumberForm = ({getMobileData}) => {
     );
 };
 
+export default NumberForm;
+
 const styles = StyleSheet.create({
-    Logintitle: {
-        marginBottom: 20,
-        marginTop: 15,
-        fontWeight: '900',
-        fontSize: 30,
-        color: 'black',
-    },
-    input: {
-        marginBottom: 16,
-        backgroundColor: 'white',
-    },
-    inputError: {
-        borderWidth: 1,
-        borderColor: 'red', // Red border when there is an error
-    },
     errorText: {
         color: '#941D10',
         fontSize: 14,
@@ -176,7 +180,11 @@ const styles = StyleSheet.create({
     },
     MobileInput: {
         backgroundColor: 'white'
-    }
+    },
+    headerText: {
+        fontFamily: 'Inter-Black',
+        fontSize: 30,
+        marginBottom: 20,
+        marginTop: 15,
+    },
 });
-
-export default NumberForm;

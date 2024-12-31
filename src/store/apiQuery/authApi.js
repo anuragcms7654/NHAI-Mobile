@@ -4,14 +4,14 @@ export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
-        url: '/24367bc1-d423-46f6-8159-d678c33c706e',
+        url: '/d5e1526d-8de3-42b0-a430-a74e28839a5a',
         method: 'POST',
         body: credentials,
       }),
     }),
-    register: builder.mutation({
+    sendotp: builder.mutation({
       query: (userData) => ({
-        url: '/auth/register',
+        url: '/d5e1526d-8de3-42b0-a430-a74e28839a5a',
         method: 'POST',
         body: userData,
       }),
@@ -19,4 +19,4 @@ export const authApi = api.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const { useLoginMutation, useSendotpMutation } = authApi;

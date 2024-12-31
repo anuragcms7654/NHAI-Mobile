@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
           backgroundColor="transparent"
           translucent={true}
         />
-        <Header />
+ 
         <Stack screenOptions={{ headerShown: false }} />
       </SafeAreaView>
     </Provider>

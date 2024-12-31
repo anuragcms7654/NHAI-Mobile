@@ -1,29 +1,50 @@
-import { StyleSheet, View, TextInput, Keyboard, TouchableWithoutFeedback, ScrollView, RefreshControl } from 'react-native';
+import { useRouter } from "expo-router";
+import { StyleSheet, View, TextInput, ScrollView, RefreshControl } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { Text, Button } from 'react-native-paper';
 import { Formik } from 'formik';
 import { validationSchema } from './OTPschema';
-import useCountdown from '../../hooks/useCountdown';
 import Loader from '../Loader/Loader';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSendotpMutation } from '../../store/apiQuery/authApi'; // Import your mutation
 
-export const OTPForm = ({ refreshTrigger }) => {
+export const OTPForm = ({ refreshTrigger, mobile, onBack, formattedTime, timeLeft, onResend }) => {
   const [otp, setOtp] = useState(Array(5).fill(''));
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null); 
+  const [errorState, setErrorState] = useState(false);  // New state for error management
   const inputRefs = useRef([]);
-  const { formattedTime, reset, restart } = useCountdown(30);
+  const router = useRouter();
+
+  // Initialize send OTP mutation
+  const [sendOtp, { isLoading, error: errorApi, data: verifyResData }] = useSendotpMutation();
 
   useEffect(() => {
     setOtp(Array(5).fill(''));
   }, [refreshTrigger]);
 
+  useEffect(() => {
+    // Handle error from Formik validation or API response
+    if (errorApi) {
+      setErrorMessage(errorApi?.data?.message || errorApi?.message || 'Failed to send OTP. Please try again.');
+      setErrorState(true);  // Set error state to true
+    } else if (verifyResData) {
+      router.push("/dashboard");
+    }
+  }, [errorApi, verifyResData]);
+
+  // Handle OTP submission
   const handleValueOtp = (values) => {
-    alert(values.otp.join(''));
+    const otpString = values.otp.join('');
+    sendOtp({ mobile, otp: otpString });
   };
 
+  // Handle input change and manage OTP state
   const handleInput = (e, index, setFieldValue) => {
     const text = e.nativeEvent.text || e.nativeEvent.key;
     const updatedOtp = [...otp];
+
     if (text === 'Backspace') {
       if (index > 0 || index === 0) {
         updatedOtp[index] = '';
@@ -45,12 +66,32 @@ export const OTPForm = ({ refreshTrigger }) => {
     }
   };
 
+  // Handle refresh action
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => {
       setOtp(Array(5).fill(''));
       setRefreshing(false);
     }, 2000);
+  };
+
+  // Clear error message if OTP value changes
+  const handleOtpChange = (values) => {
+    setErrorMessage(null);  // Reset error message if OTP is modified
+    setErrorState(false);   // Reset error state when OTP is changed
+  };
+
+  // Handle resend action, clear OTP input fields and error message
+  const handleResend = (setFieldValue) => {
+    setOtp(Array(5).fill(''));  // Reset OTP fields to empty when Resend is pressed
+    setFieldValue('otp', Array(5).fill(''));  // Also reset Formik values
+    setErrorMessage(null);  // Clear the error message when Resend is clicked
+    setErrorState(false);  // Reset the error state
+    inputRefs.current[0]?.focus();
+    inputRefs.current.forEach(ref => ref.blur()); // Remove focus from all OTP inputs
+    setFocusedIndex(null);  // Reset focused index
+    
+    if (onResend) onResend();  // Call the onResend function passed as a prop
   };
 
   return (
@@ -60,73 +101,96 @@ export const OTPForm = ({ refreshTrigger }) => {
         validationSchema={validationSchema}
         onSubmit={handleValueOtp}
       >
-        {({ handleChange, handleBlur, values, errors, touched, setFieldValue, handleSubmit }) => (
+        {({ handleChange, handleBlur, values, errors, touched, setFieldValue, handleSubmit,resetForm }) => (
           <View>
             <View style={styles.backButton}>
-              <Button
-                icon="arrow-left"
-                labelStyle={styles.backButtonIcon}
-                onPress={() => console.log('Button pressed')}
-              />
+              <MaterialCommunityIcons name="arrow-left" size={30} color="black" onPress={onBack} />
             </View>
             <View style={styles.header}>
               <Text style={styles.headerText}>Verify OTP</Text>
               <Text style={styles.subText}>
                 OTP has been sent to{' '}
                 <Text style={styles.boldText}>
-                  +91 7210324315 <Text style={styles.dot}>&#x2022;</Text>
+                  +91 {mobile} <Text style={styles.dot}>&#x2022;</Text>
                 </Text>{' '}
-                <Text style={styles.editText}>Edit</Text>
+
+                <Text style={styles.editText} onPress={onBack}>Edit</Text>
               </Text>
             </View>
 
             <ScrollView
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ flexGrow: 1 }}
-              refreshControl={<RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#104685']}  
-                size="large"
-              />
-              }
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#104685']} size="large" />}
             >
               <View style={styles.otpContainer}>
-                {values.otp.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    style={[
-                      styles.inputOtp,
-                      focusedIndex === index ? styles.focusedInput : styles.defaultInput,
-                      touched.otp && errors.otp && errors.otp[index] ? styles.errorInput : null,
-                    ]}
-                    value={digit}
-                    keyboardType="numeric"
-                    maxLength={1}
-                    onChangeText={(text) => handleInput({ nativeEvent: { text } }, index, setFieldValue)}
-                    onKeyPress={(e) => handleInput(e, index, setFieldValue)}
-                    onFocus={() => setFocusedIndex(index)}
-                    onBlur={() => {
-                      handleBlur(`otp[${index}]`);
-                      setFocusedIndex(null);
-                    }}
-                    ref={(ref) => (inputRefs.current[index] = ref)}
-                  />
-                ))}
+                {values.otp.map((digit, index) => {
+                  // Determine if there's an error for the current field
+                  const isError = 
+                    (touched.otp && errors.otp && errors.otp[index]) || 
+                    errorState;  // Apply error styling globally if there's any error
+
+                  return (
+                    <TextInput
+                      key={index}
+                      style={[
+                        styles.inputOtp,
+                        focusedIndex === index ? styles.focusedInput : styles.defaultInput,
+                        isError ? styles.errorInput : null,  // Apply error styling
+                      ]}
+                      value={digit}
+                      keyboardType="numeric"
+                      maxLength={1}
+                      onChangeText={(text) => {
+                        handleInput({ nativeEvent: { text } }, index, setFieldValue);
+                        handleOtpChange(values);  // Reset error message when OTP is modified
+                      }}
+                      onKeyPress={(e) => handleInput(e, index, setFieldValue)}
+                      onFocus={() => setFocusedIndex(index)}
+                      onBlur={() => {
+                        handleBlur(`otp[${index}]`);
+                        setFocusedIndex(null);
+                      }}
+                      ref={(ref) => (inputRefs.current[index] = ref)}
+                    />
+                  );
+                })}
               </View>
+
+              {/* Display Formik error messages for OTP fields */}
+              {errorMessage &&  (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              )}
+
               <View style={styles.dontReceive}>
                 <Text style={styles.dontReceiveText}>
                   Didn’t receive the OTP? <Text style={styles.dot}>&#x2022;</Text>
                 </Text>
-                <Text style={styles.resendCounter}>Resend in {formattedTime}</Text>
+                {timeLeft === 0 ? (
+                  <Text mode="text" onPress={() => {handleResend(setFieldValue); resetForm()}} style={styles.resendText}>
+                    Resend
+                  </Text>
+                ) : (
+                  <Text style={styles.resendCounter}>Resend in {formattedTime}</Text>
+                )}
               </View>
+
               <View>
-                <Button mode="contained" onPress={() => {
-                  setTimeout(() => handleSubmit(), 100);
-                }} style={styles.buttonOtp}>
-                  Verify OTP  <Loader size={15} style={{ paddingTop:7,paddingLeft:5}}/>
+                <Button
+                  mode="contained"
+                  onPress={() => {
+                    // Clear previous error message before submitting
+                    setErrorMessage(null);
+                    setErrorState(false);
+                    setTimeout(() => handleSubmit(), 100);
+                  }}
+                  style={styles.buttonOtp}
+                >
+                  Verify OTP
+                  {isLoading && <Loader size={15} style={{ paddingTop: 7, paddingLeft: 5 }} />}
                 </Button>
               </View>
+
             </ScrollView>
           </View>
         )}
@@ -135,23 +199,14 @@ export const OTPForm = ({ refreshTrigger }) => {
   );
 };
 
-export default OTPForm;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   backButton: {
     alignItems: 'flex-start',
     marginBottom: 5,
-    marginLeft: -15,
-  },
-  backButtonIcon: {
-    fontSize: 30,
-    color: 'black',
+    marginLeft: -5,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   headerText: {
     fontSize: 24,
@@ -169,6 +224,7 @@ const styles = StyleSheet.create({
   },
   editText: {
     color: '#104685',
+    fontWeight: 500,
   },
   otpContainer: {
     flexDirection: 'row',
@@ -192,12 +248,12 @@ const styles = StyleSheet.create({
     borderColor: '#104685',
   },
   errorInput: {
-    borderColor: '#941D10',
+    borderColor: '#941D10',  // Red border for errors
   },
   dontReceive: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 20,
     marginBottom: 20,
   },
   dontReceiveText: {
@@ -212,8 +268,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     width: '100%',
     backgroundColor: '#104685',
-    marginTop: 15,
+    marginTop: 20,
     marginBottom: 15,
   },
-
+  resendText: {
+    color: '#104685',
+    fontWeight: 500,
+  },
+  errorText: {
+    color: '#941D10',
+    marginTop: -15,
+    marginBottom: 15,
+  },
 });
+
+export default OTPForm;

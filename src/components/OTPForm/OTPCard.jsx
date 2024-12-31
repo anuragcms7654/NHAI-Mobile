@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   });
 
 
-const OTPCard = ({refreshTrigger}) => {
+const OTPCard = ({refreshTrigger,mobile}) => {
     const [otp, setOtp] = useState(Array(5).fill(''));
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
@@ -156,7 +156,7 @@ const OTPCard = ({refreshTrigger}) => {
                 <Text style={styles.subText}>
                   OTP has been sent to{' '}
                   <Text style={styles.boldText}>
-                    +91 7210324315 <Text style={styles.dot}>&#x2022;</Text>
+                    +91 {mobile} <Text style={styles.dot}>&#x2022;</Text>
                   </Text>{' '}
                   <Text style={styles.editText}>Edit</Text>
                 </Text>
