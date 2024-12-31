@@ -4,10 +4,12 @@ import { StyleSheet, Text, View, ImageBackground } from "react-native";
 import DigitalIndia from "../src/assets/images/logo/DigitalIndia.svg";
 import National from "../src/assets/images/National-Emblem.svg";
 import Nhai from "../src/assets/images/NHAI.svg";
+import { useSelector } from "react-redux";
 
 export default function Index() {
   const [isMounted, setIsMounted] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const {isAuthorized} = useSelector(state => state.auth)
   const authorised = true;
   const router = useRouter();
 
@@ -19,7 +21,9 @@ export default function Index() {
     if (isMounted) {
       setTimeout(() => {
         setShowSplash(false);
-        if (authorised) {
+        if (isAuthorized) {
+          router.push("/dashboard");
+        }else{
           router.push("/auth");
         }
       }, 3000);

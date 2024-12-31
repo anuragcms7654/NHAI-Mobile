@@ -1,46 +1,49 @@
+import PrivateRoutes from '@/src/components/RoutesGuard/PrivateRoutes';
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Appbar, Avatar, Card, Paragraph } from 'react-native-paper';
 
 export default function _layout() {
   return (
-    <View style={styles.container}>
-      {/* Appbar */}
-      <Appbar.Header style={styles.appBar}>
-        <Appbar.Content title="NHAI One" style={styles.appBarContent} />
-        <Avatar.Image
-          size={36}
-          source={{ uri: 'https://placehold.co/36x36' }} // Placeholder for profile image
-          style={styles.avatar}
-        />
-      </Appbar.Header>
+    <PrivateRoutes>
+      <View style={styles.container}>
+        {/* Appbar */}
+        <Appbar.Header style={styles.appBar}>
+          <Appbar.Content title="NHAI One" style={styles.appBarContent} />
+          <Avatar.Image
+            size={36}
+            source={{ uri: 'https://placehold.co/36x36' }} // Placeholder for profile image
+            style={styles.avatar}
+          />
+        </Appbar.Header>
 
-      {/* Welcome Section */}
-      <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeText}>Welcome, Nitin Kumar</Text>
-        <Text style={styles.subtitle}>
-          You have been invited to join <Text style={styles.boldText}>Team NHAI</Text>
-        </Text>
-      </View>
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Welcome, Nitin Kumar</Text>
+          <Text style={styles.subtitle}>
+            You have been invited to join <Text style={styles.boldText}>Team NHAI</Text>
+          </Text>
+        </View>
 
-      {/* Grid Section (Dynamic Expansion) */}
-      <View style={styles.gridSection}>
-        {Array.from({ length: 15 }).map((_, index) => (
-          <Card key={index} style={[styles.card, styles.gridCard]}>
-            <Card.Content>
-              <View style={styles.skeleton} />
-            </Card.Content>
-          </Card>
-        ))}
-      </View>
+        {/* Grid Section (Dynamic Expansion) */}
+        <View style={styles.gridSection}>
+          {Array.from({ length: 15 }).map((_, index) => (
+            <Card key={index} style={[styles.card, styles.gridCard]}>
+              <Card.Content>
+                <View style={styles.skeleton} />
+              </Card.Content>
+            </Card>
+          ))}
+        </View>
 
-      {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <View key={index} style={styles.navCircle} />
-        ))}
+        {/* Bottom Nav */}
+        <View style={styles.bottomNav}>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <View key={index} style={styles.navCircle} />
+          ))}
+        </View>
       </View>
-    </View>
+    </PrivateRoutes>
   );
 }
 

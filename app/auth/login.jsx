@@ -14,9 +14,11 @@ import Header from '@/src/components/Header/Header';
 const Login = () => {
     const [sentotp, setsendotp] = useState(false);
     const [showNumberForm, setShowNumberForm] = useState(true);
+    const [numberFormError, setNumberFormError] = useState("");
     const dispatch = useDispatch();
     const { mobileNumber } = useSelector(state => state?.auth);
-    const [login, { isLoading, isError, error, data }] = useLoginMutation();
+    const [login, { isLoading: loginIsLoading, isError: loginIsError, error: loginError, data: loginData }] = useLoginMutation();
+    const [sendOtp, { isLoading: verifyIsLoading, isError: verufyIsError, error: verifyError, data: verifyData }] = useSendotpMutation();
     const { restart, formattedTime, timeLeft } = useCountdown(3);
     const [firstRender, setFirstRender] = useState(false);
 
@@ -28,6 +30,8 @@ const Login = () => {
                 setsendotp(true);
                 setShowNumberForm(false);
                 restart(); 
+            }else{
+                setNumberFormError('Something Went Wrong');
             }
         } catch (err) {
             console.error('Login Failed:', err);
@@ -38,12 +42,15 @@ const Login = () => {
         if (firstRender) dispatch(updateMobileNumber(""));
         setFirstRender(true);
     }, [firstRender])
-    
 
     const handleBackToNumberForm = () => {
         setsendotp(false);
         setShowNumberForm(true);
     };
+
+    const handleResendOtp = () => {
+        
+    }
 
     const handleResend = async () => {
         try {
@@ -58,16 +65,20 @@ const Login = () => {
         }
     };
 
+    const getOtp = (otpData) => {
+
+    }
+
     return (
         <View style={styles.container}>
             <Header />
-
             <Card style={styles.LoginCardContainer}>
                 <Card.Content style={styles.LoginCardContent}>
                     {showNumberForm ? (
-                        <NumberForm getMobileData={getMobileData} mobileNumber={mobileNumber} />
+                        <NumberForm getMobileData={getMobileData} error={numberFormError}/>
                     ) : (
                         <OTPForm
+                            getOtp={getOtp}
                             mobile={mobileNumber}
                             refreshTrigger={sentotp}
                             onBack={handleBackToNumberForm}
@@ -75,7 +86,6 @@ const Login = () => {
                             timeLeft={timeLeft}            
                             onResend={handleResend}        
                         />
-
                     )}
                 </Card.Content>
                 <View style={styles.LoginFooter}>

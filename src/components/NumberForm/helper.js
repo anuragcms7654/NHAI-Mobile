@@ -1,5 +1,9 @@
 import * as Yup from 'yup';
 
+export const initialValues = {
+  mobileNumber: '',
+}
+
 export const validationSchema = Yup.object({
     mobile: Yup.string()
       .required('Mobile number is required')
