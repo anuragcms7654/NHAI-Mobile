@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, View, TextInput, ScrollView, RefreshControl } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
-import { Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { Formik } from 'formik';
 import { validationSchema } from './OTPschema';
 import Loader from '../Loader/Loader';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSendotpMutation } from '../../store/apiQuery/authApi'; // Import your mutation
+import { useSendotpMutation } from '../../store/apiQuery/authApi'; 
+import Button from "../Button/Button";
 
 export const OTPForm = ({ refreshTrigger, mobile, onBack, formattedTime, timeLeft, onResend }) => {
   const [otp, setOtp] = useState(Array(5).fill(''));
@@ -184,7 +185,7 @@ export const OTPForm = ({ refreshTrigger, mobile, onBack, formattedTime, timeLef
                     setErrorState(false);
                     setTimeout(() => handleSubmit(), 100);
                   }}
-                  style={styles.buttonOtp}
+                  // style={styles.buttonOtp}
                 >
                   Verify OTP
                   {isLoading && <Loader size={15} style={{ paddingTop: 7, paddingLeft: 5 }} />}

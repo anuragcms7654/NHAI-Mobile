@@ -27,7 +27,6 @@ export default function Index() {
   }, [isMounted, authorised]);
 
   return (
-    // Conditional rendering based on `showSplash`
     showSplash && (
       <View style={styles.container}>
         <ImageBackground

@@ -58,12 +58,15 @@ const Login = () => {
         }
     };
 
+
     return (
         <View style={styles.container}>
             <Header />
 
+
             <Card style={styles.LoginCardContainer}>
                 <Card.Content style={styles.LoginCardContent}>
+   
                     {showNumberForm ? (
                         <NumberForm getMobileData={getMobileData} mobileNumber={mobileNumber} />
                     ) : (
