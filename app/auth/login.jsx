@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Card } from 'react-native-paper';
+import { Card,Divider } from 'react-native-paper';
 import NumberForm from '@/src/components/NumberForm/NumberForm';
 import DigitalIndia from "../../src/assets/images/logo/DigitalIndia.svg";
 import React, { useEffect, useState } from 'react';
@@ -9,8 +9,12 @@ import { useLoginMutation, useSendotpMutation } from '../../src/store/apiQuery/a
 import OTPForm from '@/src/components/OTPForm/OTPForm';
 import useCountdown from '../../src/hooks/useCountdown'; 
 import Header from '@/src/components/Header/Header';
-
-
+import Button from '../../src/components/Button/Button';
+import { useRouter } from 'expo-router';
+import { Link } from '@react-navigation/native';
+// import  useDeviceID from "../../src/hooks/useDeviceId"
+import {envConfig } from "@/src/config/encryption"
+ 
 const Login = () => {
     const [sentotp, setsendotp] = useState(false);
     const [showNumberForm, setShowNumberForm] = useState(true);
@@ -19,11 +23,26 @@ const Login = () => {
     const [login, { isLoading, isError, error, data }] = useLoginMutation();
     const { restart, formattedTime, timeLeft } = useCountdown(3);
     const [firstRender, setFirstRender] = useState(false);
+    const router = useRouter();
+    const [inputValue, setInputValue] = useState(mobileNumber || '');  
+    // const deviceid = useDeviceID();
+    console.log(envConfig.REACT_NATIVE_CLIENT_ID);
+
+        useEffect(() => {
+        setInputValue(mobileNumber || '');
+    }, [mobileNumber]);
+
+    const handleButtonPress = () => {
+        console.log('Input Value:', inputValue);
+        router.push('/auth/signup');
+    };
+
 
     const getMobileData = async (data) => {
         dispatch(updateMobileNumber(data));
+        console.log(data)
         try {
-            const result = await login({ mobile: data }).unwrap();
+            const result = await login({ mobile_number: data }).unwrap();
             if (result.status === 'success') {
                 setsendotp(true);
                 setShowNumberForm(false);
@@ -47,7 +66,7 @@ const Login = () => {
 
     const handleResend = async () => {
         try {
-            const result = await login({ mobile: mobileNumber }).unwrap();  
+            const result = await login({ mobile_number: mobileNumber }).unwrap();  
             if (result.status === 'success') {
                 restart();
             } else {
@@ -58,6 +77,12 @@ const Login = () => {
         }
     };
 
+      // Initialize send OTP mutation
+  const [sendOtp, { isLoading:loadingotp, error: errorApi, data: verifyResData }] = useSendotpMutation();
+  
+  const SubmitOtpForm = (mobile,otpString) => {
+    sendOtp({ mobile_number:mobile, otp: otpString });
+  };
 
     return (
         <View style={styles.container}>
@@ -68,7 +93,31 @@ const Login = () => {
                 <Card.Content style={styles.LoginCardContent}>
    
                     {showNumberForm ? (
-                        <NumberForm getMobileData={getMobileData} mobileNumber={mobileNumber} />
+<>
+<Text style={styles.headerText}>Login</Text>
+<NumberForm getMobileData={getMobileData} mobileNumber={mobileNumber} />
+
+            <View style={styles.dividerContainer}>
+                <Divider style={styles.divider} />
+                <Text style={styles.dividerText}>OR</Text>
+                <Divider style={styles.divider} />
+            </View>
+
+            <View style={styles.DontHaveView}>
+                <Text style={styles.DontHaveText}>Don't have an account?</Text>
+            </View>
+
+            <Button
+                mode="outlined"
+                onPress={handleButtonPress}
+                label={'Signup'}
+            />
+
+            <View style={styles.TroubleContainer}>
+                <Text style={styles.Troubletext}>Having trouble logging in ?</Text>
+                <Link style={styles.linkText}>Get Help</Link>
+            </View>
+</>
                     ) : (
                         <OTPForm
                             mobile={mobileNumber}
@@ -76,7 +125,11 @@ const Login = () => {
                             onBack={handleBackToNumberForm}
                             formattedTime={formattedTime}  
                             timeLeft={timeLeft}            
-                            onResend={handleResend}        
+                            onResend={handleResend}     
+                            SubmitOtpForm={SubmitOtpForm}   
+                            loadingotp={loadingotp}
+                            errorApi={errorApi}
+                            verifyResData={verifyResData}
                         />
 
                     )}
@@ -125,5 +178,55 @@ const styles = StyleSheet.create({
     LoginFooterText: {
         color: '#adadad', 
         fontSize: 10,
+    },
+    headerText: {
+        fontFamily: 'Inter-Black',
+        fontSize: 30,
+        marginBottom: 20,
+        marginTop: 15,
+    },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 30,
+        width: '30%',
+        alignSelf: 'center',
+    },
+    divider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#777877',
+    },
+    dividerText: {
+        marginHorizontal: 8,
+        color: '#777877',
+        fontWeight: 'bold',
+    },
+    DontHaveView: {
+        marginBottom: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    DontHaveText: {
+        fontSize: 16,
+        color: '#777877',
+    },
+    TroubleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 30,
+    },
+    Troubletext: {
+        color: '#777877',
+        fontSize: 12,
+    },
+    linkText: {
+        color: '#104685',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
     },
 });
