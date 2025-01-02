@@ -49,6 +49,8 @@ const NumberForm = ({ getMobileData, mobileNumber }) => {
                 onChangeText={handleChangeText}  
                 onBlur={handleBlur}  
                 mode="outlined"
+                maxLength={10}
+                minLength={10}
                 keyboardType="numeric"
                 style={styles.MobileInput}
                 theme={{

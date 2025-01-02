@@ -67,9 +67,10 @@ const colors = {
     gray700: '#757575',
     gray800: '#212121',
     gray900: '#000000',
+    error:'#941D10'
   };
 
-  const fontWeights = {
+export  const fontWeights = {
     regular: '400',
     medium: '500',
     semiBold: '600',
@@ -78,7 +79,7 @@ const colors = {
     black: '900',
   };
 
-  const fontSizes = {
+  export const fontSizes = {
     large: 24,    // 1.5rem -> 24px
     medium: 18,   // 1.125rem -> 18px
     small: 16,    // 1rem -> 16px
@@ -86,7 +87,7 @@ const colors = {
     xxSmall: 12,  // 0.75rem -> 12px
   };
 
-  const lineHeights = {
+  export const lineHeights = {
     large: 32,    // 2rem -> 32px
     medium: 24,   // 1.5rem -> 24px
     small: 22,    // 1.375rem -> 22px
@@ -94,7 +95,7 @@ const colors = {
     xxSmall: 16,  // 1rem -> 16px
   };
 
-  const typography = {
+const typography = {
     headingXL: {
       fontSize: 55, // 5.5rem -> 55px
       lineHeight: 57, // 5.75rem -> 57px
@@ -154,7 +155,7 @@ const colors = {
 
 
 
-  const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
       padding: 16,  // Adjust for a base 16px padding
     },
@@ -274,4 +275,4 @@ const responsiveStyles = StyleSheet.create({
 });
 
 
-export { colors, typography, styles, responsiveStyles };
+export { colors, typography, styles, responsiveStyles, };

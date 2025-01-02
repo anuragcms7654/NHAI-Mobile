@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
-import { TextInput } from 'react-native-paper';
-import { colors } from '@/src/utils/colorCode';
-import {
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useState } from "react";
+import { TextInput } from "react-native-paper";
+import { colors, fontSizes } from "@/src/utils/colorCode";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 
 const DynamicTextInput = ({
   label,
   value,
   onChangeText,
   secureTextEntry = false,
-  keyboardType = 'default',
+  keyboardType = "default",
   style,
   labelStyle,
   inputStyle,
@@ -28,27 +24,29 @@ const DynamicTextInput = ({
     setShowPassword(!showPassword);
   };
 
+  const borderColor = error ? colors.error : colors.brand500;
+
   return (
     <View style={[style]}>
-                  <TextInput
-                      label={label}
-                      value={value}
-                      onChangeText={onChangeText}
-                      secureTextEntry={secureTextEntry && !showPassword}
-                      keyboardType={keyboardType}
-                       style={[styles.input, inputStyle]}
-                      onBlur={onBlur}
-                      onFocus={onFocus}
-                      maxLength={maxLength}
-                      mode="outlined"
-                      theme={{
-                        colors: {
-                            primary: colors.brand500,
-                            outline:  colors.brand500,
-                        },
-                    }}
-                      
-                  />
+      <TextInput
+        label={label}
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={secureTextEntry && !showPassword}
+        keyboardType={keyboardType}
+        style={[styles.input, inputStyle]}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        maxLength={maxLength}
+        mode="outlined"
+        placeholderTextColor="gray"
+        theme={{
+          colors: {
+            primary: borderColor,
+            outline: borderColor,
+          },
+        }}
+      />
 
       {secureTextEntry && (
         <TouchableOpacity
@@ -56,7 +54,19 @@ const DynamicTextInput = ({
           onPress={togglePasswordVisibility}
         >
           <Text style={styles.toggleButtonText}>
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? (
+              <MaterialCommunityIcons
+                name="eye-off-outline"
+                size={18}
+                color={colors.brand500}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="eye-outline"
+                size={18}
+                color={colors.brand500}
+              />
+            )}
           </Text>
         </TouchableOpacity>
       )}
@@ -66,31 +76,32 @@ const DynamicTextInput = ({
   );
 };
 
-// Styles for the component
 const styles = StyleSheet.create({
-  // colors.brand500
   input: {
     borderRadius: 5,
-    fontSize: 16,
-    width:'20.75rem',
-    height:'3.25rem',
-    backgroundColor:'white'
+    fontSize: 14,
+    maxWidth: "20.75rem",
+    height: "3.25rem",
+    width: "100%",
+    backgroundColor: colors.gray000,
   },
   toggleButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     top: 10,
     padding: 5,
   },
   toggleButtonText: {
-    color: '#007bff',
-    fontSize: 14,
+    color: colors.brand500,
+    fontSize: 12,
+    marginTop: 8,
+    fontFamily: "inter-black",
   },
   errorText: {
-    color: 'red',
+    color: colors.error,
     fontSize: 12,
     marginTop: 5,
   },
 });
 
-export default DynamicTextInput; 
+export default DynamicTextInput;
