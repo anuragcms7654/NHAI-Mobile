@@ -12,5 +12,6 @@ export const SapSchema = Yup.object({
     SapInitialValue:'',
     SapData:[],
     sapidState:true,
+    sapDetailsState:false,
     sapOtpState:false
   };

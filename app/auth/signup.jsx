@@ -12,26 +12,31 @@ import SapDetails from "@/src/features/SapDetails/index";
 import OTPForm from "@/src/components/OTPForm/OTPForm";
 import { useFormik } from "formik";
 import { SapInitial, SapSchema } from "@/src/features/SapDetails/SapSchema";
-import {useSapDetailMutation} from "@/src/store/apiQuery/authApi"
+import { useSapDetailMutation, useSendotpMutation, useLoginMutation } from "@/src/store/apiQuery/authApi"
 import { useDispatch, useSelector } from "react-redux";
-import {updateSapId, updateSapDetails} from "../../src/store/slices/_Permanent_Reg_Slice"
+import { updateSapId, updateSapDetails } from "../../src/store/slices/_Permanent_Reg_Slice";
+import useCountdown from "@/src/hooks/useCountdown";
 
 
 const Signup = () => {
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
   const router = useRouter();
   const [sapid, setSapId] = useState(SapInitial.sapidState);
+  const [sapDetails, setsapDetails] = useState(SapInitial.sapDetailsState);
   const [sapotp, setSapOtp] = useState(SapInitial.sapOtpState);
   const dispatch = useDispatch();
-  const [sapApi,{ isLoading: loadingsap, error: errorSapApi, data: SapResData, isSuccess:isSuccessSap },] = useSapDetailMutation();
-  
-   useEffect(()=>{
-    if(isSuccessSap){
+  const { restart, formattedTime, timeLeft } = useCountdown(3);
+
+  const [sapApi, { isLoading: loadingsap, error: errorSapApi, data: SapResData, isSuccess: isSuccessSap },] = useSapDetailMutation();
+  const [sendOtp, { isLoading: loadingotp, error: errorApi, data: verifyResData }] = useSendotpMutation();
+  const [login, { isLoading, isError, error, data }] = useLoginMutation();
+
+  useEffect(() => {
+    if (isSuccessSap) {
       setSapId(!isSuccessSap)
+      setsapDetails(!SapInitial.sapDetailsState);
     }
     dispatch(updateSapDetails(SapResData?.data))
-   },[loadingsap,errorSapApi,SapResData])
+  }, [loadingsap, errorSapApi, SapResData])
 
   const sapFormik = useFormik({
     initialValues: {
@@ -41,25 +46,63 @@ const Signup = () => {
     onSubmit: async (values) => {
       dispatch(updateSapId(values?.sapid))
       try {
-          await sapApi({sap_id: values?.sapid});
+        await sapApi({ sap_id: values?.sapid });
       } catch (error) {
-          console.error('Login Failed------:', error);
-          setApiError("Failed to login. Please check your mobile number or try again."); 
+        console.error('Login Failed------:', error);
+        setApiError("Failed to login. Please check your mobile number or try again.");
       }
-  }
+    }
   });
 
   const OpenSapDiv = () => {
     setSapId(true);
+    setsapDetails(false);
   };
 
   const GoBackLogin = () => {
     router.push("/auth/login");
   };
 
-  const handleSapResponseVerify = ()=>{
-    setSapOtp(!SapInitial.sapOtpState); 
+  const handleSapResponseVerify = async () => {
+    try {
+      const result = await login({ mobile_number: SapResData?.data?.mobile_number }).unwrap();
+      if (result.status === "success") {
+        restart();
+        setsapDetails(false);
+        setSapOtp(true);
+      } else {
+        console.log("Failed to send OTP");
+      }
+    } catch (error) {
+      console.error("send OTP Failed:", error);
+    }
   }
+
+
+
+  const SubmitOtpForm = (mobile, otpString) => {
+    sendOtp({ mobile_number: mobile, otp: otpString });
+  };
+
+  const handleBackToSapDetails = () => {
+    setSapOtp(false);
+    setsapDetails(true);
+  };
+
+  const handleResend = async () => {
+    try {
+      const result = await login({ mobile_number: SapResData?.data?.mobile_number }).unwrap();
+      if (result.status === "success") {
+        restart();
+      } else {
+        console.log("Failed to resend OTP");
+      }
+    } catch (error) {
+      console.error("Resend OTP Failed:", error);
+    }
+  };
+
+
 
   return (
     <View style={styles.container}>
@@ -67,7 +110,7 @@ const Signup = () => {
       <Card style={styles.LoginCardContainer}>
         <Card.Content style={styles.LoginCardContent}>
           <View style={styles.backButton}>
-            {sapid ? (
+            {sapid && (
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={32}
@@ -75,7 +118,9 @@ const Signup = () => {
                 color="black"
                 style={{ marginTop: "156px", marginLeft: "40px" }}
               />
-            ) : (
+            )}
+
+            {sapDetails && (
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={32}
@@ -86,13 +131,14 @@ const Signup = () => {
             )}
           </View>
 
-          <View style={styles.header}>
-            <Text style={styles.headerText}>Sign Up</Text>
-          </View>
+
 
           {/* SAP ID Section */}
-          {sapid ? (
+          {sapid && (
             <>
+              <View style={styles.header}>
+                <Text style={styles.headerText}>Sign Up</Text>
+              </View>
               <DynamicTextInput
                 label="SAP/Employee ID"
                 value={sapFormik.values.sapid}
@@ -114,21 +160,25 @@ const Signup = () => {
                 style={{ marginTop: 20, marginBottom: 20 }}
               />
             </>
-          ) : (
+          )}
+          {sapDetails && (
             <>
+              <View style={styles.header}>
+                <Text style={styles.headerText}>Sign Up</Text>
+              </View>
               <Text style={styles.subText}>
                 We have found an account with SAP ID/Employee ID{" "}
                 <Text style={styles.sapidHighlight}>{SapResData?.data?.sap_id}</Text>
               </Text>
               <View>
-                <SapDetails 
-                sap_id={SapResData?.data?.sap_id} 
-                name={SapResData?.data?.name}
-                dob={SapResData?.data?.dob}
-                mobile_number={SapResData?.data?.mobile_number}
-                email_id={SapResData?.data?.email_id}
-                designation={SapResData?.data?.designation}
-                office_location={SapResData?.data?.office_location} />
+                <SapDetails
+                  sap_id={SapResData?.data?.sap_id}
+                  name={SapResData?.data?.name}
+                  dob={SapResData?.data?.dob}
+                  mobile_number={SapResData?.data?.mobile_number}
+                  email_id={SapResData?.data?.email_id}
+                  designation={SapResData?.data?.designation}
+                  office_location={SapResData?.data?.office_location} />
                 <Button
                   mode="contained"
                   label={"Proceed"}
@@ -138,8 +188,21 @@ const Signup = () => {
               </View>
             </>
           )}
-          {sapotp && <OTPForm/>}
-          
+          {sapotp &&
+            <OTPForm
+              mobile={SapResData?.data?.mobile_number}
+              refreshTrigger={sapDetails}
+              onBack={handleBackToSapDetails}
+              formattedTime={formattedTime}
+              timeLeft={timeLeft}
+              onResend={handleResend}
+              SubmitOtpForm={SubmitOtpForm}
+              loadingotp={loadingotp}
+              errorApi={errorApi}
+              verifyResData={verifyResData}
+            />
+          }
+
         </Card.Content>
 
         {/* Footer */}
