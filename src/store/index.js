@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import AuthSlice from './slices/AuthSlice';
+import Permanent_Reg_Slice from './slices/_Permanent_Reg_Slice'
 import { persistStore, persistReducer } from 'redux-persist';
 import { api as baseApi } from './apiQuery/api'
 // import storage from 'redux-persist/lib/storage';
@@ -13,6 +14,7 @@ const persistConfig = {
 
 const appReducer = combineReducers({
   auth: AuthSlice,
+  permanent_reg: Permanent_Reg_Slice,
   [baseApi.reducerPath]: baseApi.reducer
 });
 

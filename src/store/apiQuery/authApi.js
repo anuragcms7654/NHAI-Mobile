@@ -16,7 +16,14 @@ export const authApi = api.injectEndpoints({
         body: userData,
       }),
     }),
+    sapDetail: builder.mutation({
+      query: (userData) => ({
+        url: '/2afb4800-4fe6-4423-9e51-69aa43953294',
+        method: 'POST',
+        body: userData,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useSendotpMutation } = authApi;
+export const { useLoginMutation, useSendotpMutation, useSapDetailMutation } = authApi;
